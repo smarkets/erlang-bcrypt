@@ -72,7 +72,7 @@ read_cmd(byte *buf)
 static int
 write_buf(int fd, byte *buf, int len)
 {
-    int i, done = 0; 
+    int i, done = 0;
     do {
         if ((i = write(fd, buf+done, len-done)) < 0) {
             if (errno != EINTR)
@@ -97,7 +97,23 @@ write_cmd(byte *buf, int len)
 }
 
 static int
-process_reply(ETERM *pid, int cmd, const char *res)
+process_reply(ETERM *pid, int cmd, ETERM *res)
+{
+    ETERM *result;
+    int len, retval;
+    byte *buf;
+    result = erl_format("{~i, ~w, ~w}", cmd, pid, res);
+    len = erl_term_len(result);
+    buf = erl_malloc(len);
+    erl_encode(result, buf);
+    retval = write_cmd(buf, len);
+    erl_free_term(result);
+    erl_free(buf);
+    return retval;
+}
+
+static int
+process_reply_error(ETERM *pid, int cmd, const char *res)
 {
     ETERM *result;
     int len, retval;
@@ -116,7 +132,7 @@ static int
 process_encode_salt(ETERM *pid, ETERM *data)
 {
     int retval = 0;
-    ETERM *pattern, *cslt, *lr;
+    ETERM *pattern, *cslt, *lr, *ret_bin;
     byte *csalt = NULL;
     long log_rounds = -1;
     int csaltlen = -1;
@@ -129,12 +145,14 @@ process_encode_salt(ETERM *pid, ETERM *data)
         lr = erl_var_content(pattern, "LogRounds");
         log_rounds = ERL_INT_UVALUE(lr);
         if (16 != csaltlen) {
-            retval = process_reply(pid, CMD_SALT, "Invalid salt length");
+            retval = process_reply_error(pid, CMD_SALT, "Invalid salt length");
         } else if (log_rounds < 4 || log_rounds > 31) {
-            retval = process_reply(pid, CMD_SALT, "Invalid number of rounds");
+            retval = process_reply_error(pid, CMD_SALT, "Invalid number of rounds");
         } else {
             encode_salt(ret, (u_int8_t*)csalt, csaltlen, log_rounds);
-            retval = process_reply(pid, CMD_SALT, ret);
+            ret_bin = erl_mk_binary(ret, strlen(ret));
+            retval = process_reply(pid, CMD_SALT, ret_bin);
+            erl_free_term(ret_bin);
         }
         erl_free_term(cslt);
         erl_free_term(lr);
@@ -147,7 +165,7 @@ static int
 process_hashpw(ETERM *pid, ETERM *data)
 {
     int retval = 0;
-    ETERM *pattern, *pwd, *slt, *pwd_bin, *slt_bin;
+    ETERM *pattern, *pwd, *slt, *pwd_bin, *slt_bin, *ret_bin;
     char password[1024];
     char salt[1024];
     char *ret = NULL;
@@ -162,17 +180,19 @@ process_hashpw(ETERM *pid, ETERM *data)
         slt = erl_var_content(pattern, "Salt");
         slt_bin = erl_iolist_to_binary(slt);
         if (ERL_BIN_SIZE(pwd_bin) > sizeof(password)) {
-            retval = process_reply(pid, CMD_HASHPW, "Password too long");
+            retval = process_reply_error(pid, CMD_HASHPW, "Password too long");
         } else if (ERL_BIN_SIZE(slt_bin) > sizeof(salt)) {
-            retval = process_reply(pid, CMD_HASHPW, "Salt too long");
+            retval = process_reply_error(pid, CMD_HASHPW, "Salt too long");
         } else {
             memcpy(password, ERL_BIN_PTR(pwd_bin), ERL_BIN_SIZE(pwd_bin));
             memcpy(salt, ERL_BIN_PTR(slt_bin), ERL_BIN_SIZE(slt_bin));
             if (NULL == (ret = bcrypt(password, salt)) ||
                 0 == strcmp(ret, ":")) {
-                retval = process_reply(pid, CMD_HASHPW, "Invalid salt");
+                retval = process_reply_error(pid, CMD_HASHPW, "Invalid salt");
             } else {
-                retval = process_reply(pid, CMD_HASHPW, ret);
+                ret_bin = erl_mk_binary(ret, strlen(ret));
+                retval = process_reply(pid, CMD_HASHPW, ret_bin);
+                erl_free_term(ret_bin);
             }
         }
         erl_free_term(pwd);

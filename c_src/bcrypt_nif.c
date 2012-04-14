@@ -76,6 +76,7 @@ static ERL_NIF_TERM hashpw(task_t* task)
     char password[1024] = { 0 };
     char salt[1024] = { 0 };
     char *ret = NULL;
+    ErlNifBinary bin;
 
     size_t password_sz = 1024;
     if (password_sz > task->data.hash.password.size)
@@ -95,11 +96,22 @@ static ERL_NIF_TERM hashpw(task_t* task)
             enif_make_string(task->env, "bcrypt failed", ERL_NIF_LATIN1));
     }
 
+    if (!enif_alloc_binary(strlen(ret), &bin))
+    {
+        return enif_make_tuple3(
+            task->env,
+            enif_make_atom(task->env, "error"),
+            task->ref,
+            enif_make_atom(task->env, "enomem"));
+    }
+
+    memcpy(bin.data, ret, bin.size);
+
     return enif_make_tuple3(
         task->env,
         enif_make_atom(task->env, "ok"),
         task->ref,
-        enif_make_string(task->env, ret, ERL_NIF_LATIN1));
+        enif_make_binary(task->env, &bin));
 }
 
 void* async_worker(void* arg)
@@ -152,7 +164,7 @@ static ERL_NIF_TERM bcrypt_encode_salt(ErlNifEnv* env, int argc, const ERL_NIF_T
     encode_salt((char *)bin.data, (u_int8_t*)csalt.data, csalt.size, log_rounds);
     enif_release_binary(&csalt);
 
-    return enif_make_string(env, (char *)bin.data, ERL_NIF_LATIN1);
+    return enif_make_binary(env, &bin);
 }
 
 static ERL_NIF_TERM bcrypt_hashpw(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])

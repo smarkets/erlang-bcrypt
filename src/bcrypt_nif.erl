@@ -49,7 +49,7 @@ init() ->
 %% @doc Generate a random text salt for use with hashpw/3. LogRounds
 %% defines the complexity of the hashing, increasing the cost as
 %% 2^log_rounds.
-%% @spec gen_salt(integer()) -> string()
+%% @spec gen_salt(integer()) -> binary()
 %% @end
 %%--------------------------------------------------------------------
 gen_salt(LogRounds)
@@ -75,7 +75,7 @@ create_ctx() ->
 %%              Ref::reference(),
 %%              Pid::pid(),
 %%              Password::binary(),
-%%              Salt::binary()) -> string()
+%%              Salt::binary()) -> binary()
 %% @end
 %%--------------------------------------------------------------------
 hashpw(_Ctx, _Ref, _Pid, _Password, _Salt) ->
