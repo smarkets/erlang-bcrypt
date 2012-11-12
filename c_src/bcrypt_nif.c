@@ -75,7 +75,7 @@ static ERL_NIF_TERM hashpw(task_t* task)
 {
     char password[1024] = { 0 };
     char salt[1024] = { 0 };
-    char *ret = NULL;
+    char encrypted[1024] = { 0 };
 
     size_t password_sz = 1024;
     if (password_sz > task->data.hash.password.size)
@@ -87,7 +87,7 @@ static ERL_NIF_TERM hashpw(task_t* task)
         salt_sz = task->data.hash.salt.size;
     (void)memcpy(&salt, task->data.hash.salt.data, salt_sz);
 
-    if (NULL == (ret = bcrypt(password, salt)) || 0 == strcmp(ret, ":")) {
+    if (bcrypt(encrypted, password, salt)) {
         return enif_make_tuple3(
             task->env,
             enif_make_atom(task->env, "error"),
@@ -99,7 +99,7 @@ static ERL_NIF_TERM hashpw(task_t* task)
         task->env,
         enif_make_atom(task->env, "ok"),
         task->ref,
-        enif_make_string(task->env, ret, ERL_NIF_LATIN1));
+        enif_make_string(task->env, encrypted, ERL_NIF_LATIN1));
 }
 
 void* async_worker(void* arg)
