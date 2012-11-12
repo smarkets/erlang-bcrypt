@@ -5,7 +5,7 @@
 
 typedef unsigned char byte;
 
-char *bcrypt(const char *, const char *);
+int bcrypt(char *, const char *, const char *);
 void encode_salt(char *, u_int8_t *, u_int16_t, u_int8_t);
 
 typedef struct {

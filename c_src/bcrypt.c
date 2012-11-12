@@ -63,14 +63,13 @@
 #define BCRYPT_BLOCKS 6		/* Ciphertext blocks */
 #define BCRYPT_MINROUNDS 16	/* we have log2(rounds) in salt */
 
-char *bcrypt(const char *, const char *);
+int bcrypt(char *, const char *, const char *);
 void encode_salt(char *, u_int8_t *, u_int16_t, u_int8_t);
 
 static void encode_base64(u_int8_t *, u_int8_t *, u_int16_t);
 static void decode_base64(u_int8_t *, u_int16_t, u_int8_t *);
 
-static char    encrypted[_PASSWORD_LEN];
-static char    error[] = ":";
+#define ERROR -1
 
 const static u_int8_t Base64Code[] =
 "./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -143,8 +142,8 @@ encode_salt(char *salt, u_int8_t *csalt, u_int16_t clen, u_int8_t logr)
 /* We handle $Vers$log2(NumRounds)$salt+passwd$
    i.e. $2$04$iwouldntknowwhattosayetKdJ6iFtacBqJdKe6aW7ou */
 
-char   *
-bcrypt(const char *key, const char *salt)
+int
+bcrypt(char * encrypted, const char *key, const char *salt)
 {
 	blf_ctx state;
 	u_int32_t rounds, i, k;
@@ -160,7 +159,7 @@ bcrypt(const char *key, const char *salt)
 
 	if (*salt > BCRYPT_VERSION) {
 		/* How do I handle errors ? Return ':' */
-		return error;
+		return ERROR;
 	}
 
 	/* Check for minor versions */
@@ -172,7 +171,7 @@ bcrypt(const char *key, const char *salt)
 			 salt++;
 			 break;
 		 default:
-			 return error;
+			 return ERROR;
 		 }
 	} else
 		 minor = 0;
@@ -182,21 +181,21 @@ bcrypt(const char *key, const char *salt)
 
 	if (salt[2] != '$')
 		/* Out of sync with passwd entry */
-		return error;
+		return ERROR;
 
 	/* Computer power doesn't increase linear, 2^x should be fine */
 	n = atoi(salt);
 	if (n > 31 || n < 0)
-		return error;
+		return ERROR;
 	logr = (u_int8_t)n;
 	if ((rounds = (u_int32_t) 1 << logr) < BCRYPT_MINROUNDS)
-		return error;
+		return ERROR;
 
 	/* Discard num rounds + "$" identifier */
 	salt += 3;
 
 	if (strlen(salt) * 3 / 4 < BCRYPT_MAXSALT)
-		return error;
+		return ERROR;
 
 	/* We dont want the base64 salt but the raw data */
 	decode_base64(csalt, BCRYPT_MAXSALT, (u_int8_t *) salt);
@@ -248,7 +247,7 @@ bcrypt(const char *key, const char *salt)
 	memset(ciphertext, 0, sizeof(ciphertext));
 	memset(csalt, 0, sizeof(csalt));
 	memset(cdata, 0, sizeof(cdata));
-	return encrypted;
+	return 0;
 }
 
 static void
