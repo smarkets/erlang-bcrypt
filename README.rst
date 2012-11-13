@@ -1,3 +1,6 @@
+NOTE TO OTHERS: this fork has many components that I don't need removed (the application, the erlang port for bcrypt)
+for ease of integration into my environment.  I would recommend you use the upstream version.
+
 erlang-bcrypt
 =============
 
