@@ -134,6 +134,7 @@ static ERL_NIF_TERM bcrypt_encode_salt(ErlNifEnv* env, int argc, const ERL_NIF_T
 {
     ErlNifBinary csalt, bin;
     unsigned long log_rounds;
+    ERL_NIF_TERM ret;
 
     if (!enif_inspect_binary(env, argv[0], &csalt) || 16 != csalt.size) {
         return enif_make_badarg(env);
@@ -152,7 +153,9 @@ static ERL_NIF_TERM bcrypt_encode_salt(ErlNifEnv* env, int argc, const ERL_NIF_T
     encode_salt((char *)bin.data, (u_int8_t*)csalt.data, csalt.size, log_rounds);
     enif_release_binary(&csalt);
 
-    return enif_make_string(env, (char *)bin.data, ERL_NIF_LATIN1);
+    ret = enif_make_string(env, (char *)bin.data, ERL_NIF_LATIN1);
+    enif_release_binary(&bin);
+    return ret;
 }
 
 static ERL_NIF_TERM bcrypt_hashpw(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
