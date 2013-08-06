@@ -1,7 +1,10 @@
 all: compile
 
-compile:
+compile: deps
 	@rebar compile
+
+deps:
+	@rebar get-deps
 
 tests:
 	@rebar eunit
