@@ -53,9 +53,6 @@ application's environment:
   `Note: the NIF implementation no longer blocks the Erlang VM
   scheduler threads`
 
-``pool_size``
-  Specifies the size of the port program pool. Defaults to ``4``.
-
 Authors
 -------
 
