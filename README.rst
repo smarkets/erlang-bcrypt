@@ -46,13 +46,6 @@ application's environment:
   Sets the default number of rounds which define the complexity of the
   hash function. Defaults to ``12``.
 
-``mechanism``
-  Specifies whether to use the NIF implementation (``'nif'``) or a
-  pool of port programs (``'port'``). Defaults to ``'nif'``.
-
-  `Note: the NIF implementation no longer blocks the Erlang VM
-  scheduler threads`
-
 Authors
 -------
 

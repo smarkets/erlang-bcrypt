@@ -82,37 +82,12 @@
      "$2a$05$abcdefghijklmnopqrstuu",
      "$2a$05$abcdefghijklmnopqrstuu5s2v8.iXieOjg/.AySBTTZIIVFJeBui"}]).
 
-start_with(Mechanism) when Mechanism =:= nif; Mechanism =:= port ->
-    application:start(crypto),
-    case application:load(bcrypt) of
-        {error, {already_loaded, bcrypt}} -> ok;
-        ok -> ok
-    end,
-    ok = application:set_env(bcrypt, mechanism, Mechanism),
-    case application:start(bcrypt) of
-        {error, {already_started, bcrypt}} ->
-            ok = application:stop(bcrypt),
-            ok = application:start(bcrypt);
-        ok -> ok
-    end.
-
-simple_nif_test_() ->
-    {setup, fun() -> ok = start_with(nif) end,
-     [{timeout, 1000,
-       fun() ->
-               {ok, Salt} = bcrypt:gen_salt(),
-               {ok, Hash} = bcrypt:hashpw("foo", Salt),
-               ?assert({ok, Hash} =:= bcrypt:hashpw("foo", Hash)),
-               ?assertNot({ok, Hash} =:= bcrypt:hashpw("bar", Hash))
-       end}]}.
-
-pair_nif_test_() ->
-    {setup, fun() -> ok = start_with(nif) end,
-     [?_assert({ok, Hash} =:= bcrypt:hashpw(Pass, Salt)) ||
-         {Pass, Salt, Hash} <- ?PAIRS]}.
+start() ->
+    {ok, _} = application:ensure_all_started(bcrypt),
+    ok.
 
 simple_port_test_() ->
-    {setup, fun() -> ok = start_with(port) end,
+    {setup, fun() -> ok = start() end,
      [{timeout, 1000,
        fun() ->
                {ok, Salt} = bcrypt:gen_salt(),
@@ -122,6 +97,6 @@ simple_port_test_() ->
        end}]}.
 
 pair_port_test_() ->
-    {setup, fun() -> ok = start_with(port) end,
+    {setup, fun() -> ok = start() end,
      [?_assert({ok, Hash} =:= bcrypt:hashpw(Pass, Salt)) ||
          {Pass, Salt, Hash} <- ?PAIRS]}.

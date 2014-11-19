@@ -1,16 +1,13 @@
 %% -*- mode: erlang;erlang-indent-level: 2;indent-tabs-mode: nil -*-
 {application, bcrypt,
- [{description, "An Erlang wrapper (NIF or port program) for the OpenBSD password scheme, bcrypt."},
-  {vsn, "0.5.1"},
-  {registered, [bcrypt_sup, bcrypt_nif_worker, bcrypt_port_sup, bcrypt_pool]},
+ [{description, "An Erlang wrapper for the OpenBSD password scheme, bcrypt."},
+  {vsn, "0.6.0"},
+  {registered, [bcrypt_sup, bcrypt_port_sup, bcrypt_pool]},
   {mod, {bcrypt_app, []}},
   {applications, [kernel, stdlib, crypto]},
   {env, [
          % Default number of 'rounds', defining the hashing complexity
-         {default_log_rounds, 12},
-
-         % Mechanism to use 'nif' or 'port'
-         {mechanism, port}
+         {default_log_rounds, 12}
         ]}
  ]
 }.
