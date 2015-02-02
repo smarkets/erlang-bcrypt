@@ -94,6 +94,7 @@ handle_info({Port, {data, Data}}, #state{port=Port}=State) ->
     Reply =
         case {Cmd, Reply0} of
             {?CMD_SALT, "Invalid salt"} -> {error, invalid_salt};
+            {?CMD_HASH, "Invalid salt"} -> {error, invalid_salt};
             {?CMD_SALT, "Invalid number of rounds"} -> {error, invalid_rounds};
             {?CMD_HASH, "Invalid salt length"} -> {error, invalid_salt_length};
             {_, _} when Cmd =:= ?CMD_SALT; Cmd =:= ?CMD_HASH -> {ok, Reply0}
