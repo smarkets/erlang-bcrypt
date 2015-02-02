@@ -100,3 +100,7 @@ pair_port_test_() ->
     {setup, fun() -> ok = start() end,
      [?_assert({ok, Hash} =:= bcrypt:hashpw(Pass, Salt)) ||
          {Pass, Salt, Hash} <- ?PAIRS]}.
+
+bad_salt_test_() ->
+    {setup, fun() -> ok = start() end,
+     [?_assert({error, invalid_salt} == bcrypt:hashpw(<<"foo">>, <<"bar">>))]}.
