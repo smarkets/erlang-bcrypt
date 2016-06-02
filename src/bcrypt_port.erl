@@ -16,8 +16,6 @@
 
 -define(CMD_SALT, 0).
 -define(CMD_HASH, 1).
--define(BCRYPT_ERROR(F, D), error_logger:error_msg(F, D)).
--define(BCRYPT_WARNING(F, D), error_logger:warning_msg(F, D)).
 
 start_link() ->
     Dir = case code:priv_dir(bcrypt) of
@@ -56,7 +54,7 @@ init([Filename]) ->
             {ok, Rounds} = application:get_env(bcrypt, default_log_rounds),
             {ok, #state{port = Port, default_log_rounds = Rounds}};
         {error, Reason} ->
-            ?BCRYPT_ERROR("Can't open file ~p: ~p", [Filename, Reason]),
+            error_logger:error_msg("Can't open file ~p: ~p", [Filename, Reason]),
             {stop, error_opening_bcrypt_file}
     end.
 
@@ -99,6 +97,6 @@ handle_info({Port, {data, Data}}, #state{port=Port}=State) ->
     {noreply, State};
 handle_info({Port, {exit_status, Status}}, #state{port=Port}=State) ->
     %% Rely on whomever is supervising this process to restart.
-    ?BCRYPT_WARNING("Port died: ~p", [Status]),
     {stop, port_died, State};
 handle_info(Msg, _) -> exit({unknown_info, Msg}).
+    error_logger:warning_msg("Port died: ~p", [Status]),
