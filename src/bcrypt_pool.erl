@@ -9,7 +9,6 @@
 -export([gen_salt/0, gen_salt/1]).
 -export([hashpw/2]).
 
-%% gen_server
 -export([init/1, code_change/3, terminate/2,
          handle_call/3, handle_cast/2, handle_info/2]).
 
@@ -53,8 +52,7 @@ handle_call(request, {RPid, _} = From, #state{ports = P} = State) ->
         {{value, PPid}, P1} ->
             #state{busy = B} = State,
             {reply, {ok, PPid}, State#state{busy = B + 1, ports = P1}}
-    end;
-handle_call(Msg, _, _) -> exit({unknown_call, Msg}).
+    end.
 
 handle_cast(
   {available, Pid},
@@ -66,13 +64,16 @@ handle_cast(
             true = erlang:demonitor(Mon, [flush]),
             gen_server:reply(F, {ok, Pid}),
             {noreply, S#state{requests = R1}}
-    end;
-handle_cast(Msg, _) -> exit({unknown_cast, Msg}).
+    end.
 
 handle_info({'DOWN', Ref, process, _Pid, _Reason}, #state{requests = R} = State) ->
     R1 = queue:from_list(lists:keydelete(Ref, #req.mon, queue:to_list(R))),
     {noreply, State#state{requests = R1}};
-handle_info(Msg, _) -> exit({unknown_info, Msg}).
+
+handle_info(Msg, State) ->
+    error_logger:warning_msg("Bad info ~p", [Msg]),
+    {noreply, State}.
+
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
 do_call(F, Args0) ->
