@@ -5,12 +5,10 @@
 
 -behaviour(gen_server).
 
-%% API
 -export([start_link/0, stop/0]).
 -export([gen_salt/1, gen_salt/2]).
 -export([hashpw/3]).
 
-%% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
          code_change/3]).
 
@@ -49,9 +47,6 @@ gen_salt(Pid, LogRounds) ->
 hashpw(Pid, Password, Salt) ->
     gen_server:call(Pid, {hashpw, Password, Salt}, infinity).
 
-%%====================================================================
-%% gen_server callbacks
-%%====================================================================
 init([Filename]) ->
     case file:read_file_info(Filename) of
         {ok, _Info} ->
