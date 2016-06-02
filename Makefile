@@ -1,11 +1,28 @@
-all: compile
+REBAR?=rebar3
 
-compile:
-	@ ./rebar compile
+.PHONY: \
+	all \
+	clean \
+	nuke \
+	test
 
-tests:
-	@ ./rebar eunit
+all:
+	@$(REBAR) compile
 
 clean:
-	@ ./rebar clean
+	@$(REBAR) clean
 
+nuke: clean
+	@rm -rf _build
+
+test:
+	@$(REBAR) eunit
+
+update:
+	@$(REBAR) update
+
+dialyzer:
+	@$(REBAR) dialyzer
+
+coveralls:
+	@${REBAR} coveralls send

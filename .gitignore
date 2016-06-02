@@ -26,3 +26,4 @@ logs/*
 
 ## Temporary script for compiling the port
 build_port.sh
+/priv/erlang-bcrypt
