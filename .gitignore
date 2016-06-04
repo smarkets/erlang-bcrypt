@@ -2,8 +2,6 @@
 ebin/*.beam
 ebin/bcrypt.app
 _build/
-priv/bcrypt
-priv/bcrypt_nif.so
 logs/*
 .eunit
 
@@ -25,5 +23,4 @@ logs/*
 *.zip
 
 ## Temporary script for compiling the port
-build_port.sh
 /priv/erlang-bcrypt

@@ -29,7 +29,7 @@ start_link() ->
                   end;
               Priv -> Priv
           end,
-    Port = filename:join(Dir, "bcrypt"),
+    Port = filename:join(Dir, "erlang-bcrypt"),
     gen_server:start_link(?MODULE, [Port], []).
 
 stop() -> gen_server:call(?MODULE, stop).
