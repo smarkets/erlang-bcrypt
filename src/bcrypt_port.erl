@@ -59,18 +59,17 @@ init([Filename]) ->
     end.
 
 terminate(_Reason, #state{port=Port}) ->
-    catch port_close(Port),
-    ok.
+    true = port_close(Port).
 
 handle_call({encode_salt, R}, From, #state{default_log_rounds = LogRounds} = State) ->
     handle_call({encode_salt, R, LogRounds}, From, State);
 handle_call({encode_salt, R, LogRounds}, From, State=#state{port=Port}) ->
     Data = term_to_binary({?CMD_SALT, From, {R, LogRounds}}),
-    port_command(Port, Data),
+    true = port_command(Port, Data),
     {noreply, State};
 handle_call({hashpw, Password, Salt}, From, State=#state{port=Port}) ->
     Data = term_to_binary({?CMD_HASH, From, {Password, Salt}}),
-    port_command(Port, Data),
+    true = port_command(Port, Data),
     {noreply, State};
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.

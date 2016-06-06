@@ -8,9 +8,6 @@
 -export([start/2, stop/1]).
 
 start(normal, _Args) ->
-    case bcrypt_sup:start_link() of
-        {ok, Pid}          -> {ok, Pid};
-        {error, _} = Error -> Error
-    end.
+    bcrypt_sup:start_link().
 
 stop(_State) -> ok.
