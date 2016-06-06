@@ -5,21 +5,17 @@
 
 -behaviour(gen_server).
 
-%% API
 -export([start_link/0, stop/0]).
 -export([gen_salt/1, gen_salt/2]).
 -export([hashpw/3]).
 
-%% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
          code_change/3]).
 
--record(state, {port, default_log_rounds}).
+-record(state, {port :: port(), default_log_rounds :: pos_integer()}).
 
 -define(CMD_SALT, 0).
 -define(CMD_HASH, 1).
--define(BCRYPT_ERROR(F, D), error_logger:error_msg(F, D)).
--define(BCRYPT_WARNING(F, D), error_logger:warning_msg(F, D)).
 
 start_link() ->
     Dir = case code:priv_dir(bcrypt) of
@@ -33,7 +29,7 @@ start_link() ->
                   end;
               Priv -> Priv
           end,
-    Port = filename:join(Dir, "bcrypt"),
+    Port = filename:join(Dir, "erlang-bcrypt"),
     gen_server:start_link(?MODULE, [Port], []).
 
 stop() -> gen_server:call(?MODULE, stop).
@@ -49,9 +45,6 @@ gen_salt(Pid, LogRounds) ->
 hashpw(Pid, Password, Salt) ->
     gen_server:call(Pid, {hashpw, Password, Salt}, infinity).
 
-%%====================================================================
-%% gen_server callbacks
-%%====================================================================
 init([Filename]) ->
     case file:read_file_info(Filename) of
         {ok, _Info} ->
@@ -61,7 +54,7 @@ init([Filename]) ->
             {ok, Rounds} = application:get_env(bcrypt, default_log_rounds),
             {ok, #state{port = Port, default_log_rounds = Rounds}};
         {error, Reason} ->
-            ?BCRYPT_ERROR("Can't open file ~p: ~p", [Filename, Reason]),
+            error_logger:error_msg("Can't open file ~p: ~p", [Filename, Reason]),
             {stop, error_opening_bcrypt_file}
     end.
 
@@ -71,25 +64,25 @@ terminate(_Reason, #state{port=Port}) ->
 
 handle_call({encode_salt, R}, From, #state{default_log_rounds = LogRounds} = State) ->
     handle_call({encode_salt, R, LogRounds}, From, State);
-handle_call({encode_salt, R, LogRounds}, From, State) ->
-    Port = State#state.port,
+handle_call({encode_salt, R, LogRounds}, From, State=#state{port=Port}) ->
     Data = term_to_binary({?CMD_SALT, From, {R, LogRounds}}),
     port_command(Port, Data),
     {noreply, State};
-handle_call({hashpw, Password, Salt}, From, State) ->
-    Port = State#state.port,
+handle_call({hashpw, Password, Salt}, From, State=#state{port=Port}) ->
     Data = term_to_binary({?CMD_HASH, From, {Password, Salt}}),
     port_command(Port, Data),
     {noreply, State};
 handle_call(stop, _From, State) ->
-    {stop, normal, ok, State};
-handle_call(Msg, _, _) -> exit({unknown_call, Msg}).
+    {stop, normal, ok, State}.
 
-handle_cast(Msg, _) -> exit({unknown_cast, Msg}).
+handle_cast(Msg, State) ->
+    error_logger:warning_msg("Unhandled cast: ~p", [Msg]),
+    {noreply, State}.
 
-code_change(_OldVsn, State, _Extra) -> {ok, State}.
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
 
-handle_info({Port, {data, Data}}, #state{port=Port}=State) ->
+handle_info({Port, {data, Data}}, State=#state{port=Port}) ->
     {Cmd, To, Reply0} = binary_to_term(Data),
     Reply =
         case {Cmd, Reply0} of
@@ -104,6 +97,5 @@ handle_info({Port, {data, Data}}, #state{port=Port}=State) ->
     {noreply, State};
 handle_info({Port, {exit_status, Status}}, #state{port=Port}=State) ->
     %% Rely on whomever is supervising this process to restart.
-    ?BCRYPT_WARNING("Port died: ~p", [Status]),
-    {stop, port_died, State};
-handle_info(Msg, _) -> exit({unknown_info, Msg}).
+    error_logger:warning_msg("Port died: ~p", [Status]),
+    {stop, port_died, State}.
