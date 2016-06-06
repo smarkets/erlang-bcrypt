@@ -1,14 +1,16 @@
 language: erlang
 
 otp_release:
+  - R16B02
+  - R16B03
+  - R16B03-1
+  - 17.0
+  - 17.1
+  - 17.4
   - 18.0
   - 18.1
   - 18.2
-  - 17.1
-  - 17.0
-  - R16B03-1
-  - R16B03
-  - R16B02
+  - 18.3
 
 script: PATH=.:$PATH make update test dialyzer coveralls
 
