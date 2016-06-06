@@ -23,9 +23,9 @@ Basic usage instructions
 1.  Hash a password using a salt with the default number of rounds:
 
 ```erlang
-        1> {ok, Salt} = bcrypt:gen_salt(),
+        1> {ok, Salt} = bcrypt:gen_salt().
         {ok,"$2a$12$sSS8Eg.ovVzaHzi1nUHYK."}
-        2> {ok, Hash} = bcrypt:hashpw("foo", Salt),
+        2> {ok, Hash} = bcrypt:hashpw("foo", Salt).
         {ok,"$2a$12$sSS8Eg.ovVzaHzi1nUHYK.HbUIOdlQI0iS22Q5rd5z.JVVYH6sfm6"}
 ```
 
