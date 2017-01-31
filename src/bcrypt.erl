@@ -4,26 +4,39 @@
 -author('Hunter Morris <hunter.morris@smarkets.com>').
 
 %% API
--export([start/0, stop/0]).
--export([mechanism/0]).
--export([gen_salt/0, gen_salt/1, hashpw/2]).
+-export([
+         start/0,
+         stop/0,
+         get_rounds/0,
+         gen_salt/0,
+         gen_salt/1,
+         hashpw/2
+        ]).
 
-start() -> application:start(bcrypt).
-stop()  -> application:stop(bcrypt).
+-define(POOL, bcrypt_pool).
 
-mechanism() ->
-    {ok, M} = application:get_env(bcrypt, mechanism),
-    M.
+start() ->
+    application:start(bcrypt).
 
-gen_salt() -> do_gen_salt(mechanism()).
-gen_salt(Rounds) -> do_gen_salt(mechanism(), Rounds).
-hashpw(Password, Salt) -> do_hashpw(mechanism(), Password, Salt).
+stop() ->
+    application:stop(bcrypt).
 
-do_gen_salt(nif)  -> bcrypt_nif_worker:gen_salt();
-do_gen_salt(port) -> bcrypt_pool:gen_salt().
+get_rounds() ->
+    {ok, Default} = application:get_env(bcrypt, default_log_rounds),
+    Default.
 
-do_gen_salt(nif, Rounds)  -> bcrypt_nif_worker:gen_salt(Rounds);
-do_gen_salt(port, Rounds) -> bcrypt_pool:gen_salt(Rounds).
-
-do_hashpw(nif, Password, Salt)  -> bcrypt_nif_worker:hashpw(Password, Salt);
-do_hashpw(port, Password, Salt) -> bcrypt_pool:hashpw(Password, Salt).
+gen_salt() ->
+    Rounds = get_rounds(),
+    gen_salt(Rounds).
+gen_salt(Rounds) ->
+    poolboy:transaction(
+      ?POOL,
+      fun(Worker) ->
+              gen_server:call(Worker, {gen_salt, Rounds})
+      end).
+hashpw(Password, Salt) ->
+    poolboy:transaction(
+      ?POOL,
+      fun(Worker) ->
+              gen_server:call(Worker, {hashpw, Password, Salt})
+      end).

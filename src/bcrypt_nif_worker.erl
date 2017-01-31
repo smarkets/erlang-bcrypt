@@ -5,9 +5,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/0]).
--export([gen_salt/0, gen_salt/1]).
--export([hashpw/2]).
+-export([start_link/0, start_link/1]).
 
 %% gen_server
 -export([init/1, code_change/3, terminate/2,
@@ -18,13 +16,11 @@
           context
          }).
 
-start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link() ->
+    start_link([]).
 
-gen_salt() -> gen_server:call(?MODULE, gen_salt, infinity).
-gen_salt(Rounds) ->
-    gen_server:call(?MODULE, {gen_salt, Rounds}, infinity).
-hashpw(Password, Salt) ->
-    gen_server:call(?MODULE, {hashpw, Password, Salt}, infinity).
+start_link([]) ->
+    gen_server:start_link(?MODULE, [], []).
 
 init([]) ->
     {ok, Default} = application:get_env(bcrypt, default_log_rounds),
