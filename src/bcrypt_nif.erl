@@ -54,7 +54,7 @@ init() ->
 %%--------------------------------------------------------------------
 gen_salt(LogRounds)
   when is_integer(LogRounds), LogRounds < 32, LogRounds > 3 ->
-    R = crypto:rand_bytes(16),
+    R = crypto:strong_rand_bytes(16),
     encode_salt(R, LogRounds).
 
 encode_salt(_R, _LogRounds) ->
