@@ -39,11 +39,11 @@ start_link() ->
 stop() -> gen_server:call(?MODULE, stop).
 
 gen_salt(Pid) ->
-    R = crypto:rand_bytes(16),
+    R = crypto:strong_rand_bytes(16),
     gen_server:call(Pid, {encode_salt, R}, infinity).
 
 gen_salt(Pid, LogRounds) ->
-    R = crypto:rand_bytes(16),
+    R = crypto:strong_rand_bytes(16),
     gen_server:call(Pid, {encode_salt, R, LogRounds}, infinity).
 
 hashpw(Pid, Password, Salt) ->
