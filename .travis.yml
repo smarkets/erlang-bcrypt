@@ -1,6 +1,7 @@
 language: erlang
 sudo: false
 otp_release:
+  - 20.0
   - 19.3
 
 jobs:
@@ -15,3 +16,6 @@ jobs:
         on:
           tags: true
           all_branches: true
+install:
+  - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
+script: ./rebar3 compile && ./rebar3 eunit
