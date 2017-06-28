@@ -1,19 +1,21 @@
 %% -*- mode: erlang;erlang-indent-level: 2;indent-tabs-mode: nil -*-
-{application, bcrypt,
- [{description, "An Erlang wrapper (NIF or port program) for the OpenBSD password scheme, bcrypt."},
-  {vsn, git},
-  {registered, [bcrypt_sup, bcrypt_nif_worker, bcrypt_port_sup, bcrypt_pool]},
-  {mod, {bcrypt_app, []}},
-  {applications, [kernel, stdlib, crypto]},
-  {env, [
-         % Default number of 'rounds', defining the hashing complexity
-         {default_log_rounds, 12},
+{application, bcrypt, [
+    {description, "An Erlang wrapper (NIF or port program) for the OpenBSD password scheme, bcrypt."},
+    {vsn, "git"},
+    {registered, [bcrypt_sup, bcrypt_nif_worker, bcrypt_port_sup, bcrypt_pool]},
+    {mod, {bcrypt_app, []}},
+    {applications, [kernel, stdlib, crypto]},
+    {env, [
+        % Default number of 'rounds', defining the hashing complexity
+        {default_log_rounds, 12},
 
-         % Mechanism to use 'nif' or 'port'
-         {mechanism, nif},
+        % Mechanism to use 'nif' or 'port'
+        {mechanism, nif},
 
-         % Size of port program pool
-         {pool_size, 4}
-        ]}
- ]
-}.
+        % Size of port program pool
+        {pool_size, 4}
+    ]},
+    {maintainers, ["Hunter Morris", "Mrinal Wadhwa", "ErlangPack"]},
+    {licenses, ["MIT"]},
+    {links, [{"Github", "https://github.com/smarkets/erlang-bcrypt"}]}
+]}.
