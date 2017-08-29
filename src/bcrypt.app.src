@@ -1,7 +1,7 @@
 %% -*- mode: erlang;erlang-indent-level: 2;indent-tabs-mode: nil -*-
 {application, bcrypt,
  [{description, "An Erlang wrapper for the OpenBSD password scheme, bcrypt."},
-  {vsn, "0.6.3"},
+  {vsn, "0.6.4"},
   {registered, [bcrypt_sup, bcrypt_port_sup, bcrypt_pool]},
   {mod, {bcrypt_app, []}},
   {applications, [kernel, stdlib, crypto]},
